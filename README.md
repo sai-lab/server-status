@@ -1,35 +1,18 @@
-# mouryou-dog
-
-サーバの負荷量をwebsocket経由で通知するプログラムです.
-1秒ごとに測定値を送信します．
-
-# measured value
-
-現在試作段階のため，測定値は未定です.
+# server-status
 
 # Install
 
-Go言語をインストールしておく必要があります．
+need golang over 1.7
 
 ```
-git clone git://github.com/joniyjoniy/mouryou-dog.git
-cd mouryou-dog
+git clone git://github.com/sai-lab/server-status.git
+cd server-status
 make gom link
 make build
 ```
 
 # Run
 
-サーバプログラムを先に実行してください.
-
-## Server
-
 ```
-bin/sample-server
-```
-
-## plugin
-
-```
-bin/mouryou-dog
+bin/server-status
 ```

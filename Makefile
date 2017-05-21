@@ -9,13 +9,13 @@ gom:
 	fi
 
 link:
-	mkdir -p $(GOPATH)/src/github.com/joniyjoniy
-	ln -si $(CURDIR) $(GOPATH)/src/github.com/joniyjoniy/mouryou-dog
+	mkdir -p $(GOPATH)/src/github.com/sa-lab
+	ln -si $(CURDIR) $(GOPATH)/src/github.com/sai-lab/server-status
 
 fmt:
 	gom exec goimports -w *.go lib/*.go
 	gom exec goimports -w sample-server/*.go
 
 build: fmt
-	gom build $(GO_BUILDOPT) -o bin/mouryou-dog main.go
+	gom build $(GO_BUILDOPT) -o bin/server-status main.go
 	gom build $(GO_BUILDOPT) -o bin/sample-server sample-server/sample-server.go
