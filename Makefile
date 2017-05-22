@@ -15,8 +15,6 @@ link:
 
 fmt:
 	gom exec goimports -w *.go lib/*.go
-	gom exec goimports -w sample-server/*.go
 
 build: fmt
 	gom build $(GO_BUILDOPT) -o bin/server-status main.go
-	gom build $(GO_BUILDOPT) -o bin/sample-server sample-server/sample-server.go
