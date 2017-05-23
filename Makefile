@@ -14,7 +14,7 @@ link:
 	ln -s $(CURDIR)/vendor $(CURDIR)/vendor/src
 
 fmt:
-	gom exec goimports -w *.go lib/*.go
+	gom exec goimports -w *.go lib/*/*.go
 
 build: fmt
 	gom build $(GO_BUILDOPT) -o bin/server-status main.go
