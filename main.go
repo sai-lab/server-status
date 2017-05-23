@@ -10,8 +10,6 @@ import (
 
 func main() {
 
-	go functions.LoadMeasurement()
-
 	http.HandleFunc("/", functions.Handler)
 	http.ListenAndServe(":8080", nil)
 
