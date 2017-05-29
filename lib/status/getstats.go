@@ -83,37 +83,32 @@ func (s *ServerStat) GetDiskIOStat() error {
 }
 
 func (s *ServerStat) GetApacheStat() error {
-	s.ApacheStat = 1
+	var dataLine int
+	out, err := exec.Command("apachectl", "status").Output()
+	if err != nil {
+		return err
+	}
+
+	d := string(out)
+	lines := strings.Split(strings.TrimRight(d, "\n"), "\n")
+
+	for k, v := range lines {
+		if v == "Scoreboard Key:" {
+			dataLine = k
+			break
+		}
+	}
+
+	board := lines[dataLine-4]
+	board = board + lines[dataLine-3]
+	board = board + lines[dataLine-2]
+	all := len(strings.Split(board, ""))
+	idles := strings.Count(board, "_") + strings.Count(board, ".")
+
+	r := float64((all - idles)) / float64(all)
+	s.ApacheStat = r
 	return nil
 }
-
-// func (s *ServerStat) GetApacheStat() error {
-// 	var dataLine int
-// 	out, err := exec.Command("apachectl", "status").Output()
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	d := string(out)
-// 	lines := strings.Split(strings.TrimRight(d, "\n"), "\n")
-
-// 	for k, v := range lines {
-// 		if v == "Scoreboard Key:" {
-// 			dataLine = k
-// 			break
-// 		}
-// 	}
-
-// 	board := lines[dataLine-4]
-// 	board = board + lines[dataLine-3]
-// 	board = board + lines[dataLine-2]
-// 	all := len(strings.Split(board, ""))
-// 	idles := strings.Count(board, "_") + strings.Count(board, ".")
-
-// 	r := float64((all - idles)) / float64(all)
-// 	s.ApacheStat = r
-// 	return nil
-// }
 
 func (s *ServerStat) GetTime() {
 	now := time.Now()
