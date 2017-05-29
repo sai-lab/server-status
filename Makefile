@@ -10,8 +10,8 @@ gom:
 
 link:
 	mkdir -p $(GOPATH)/src/github.com/sai-lab
-	ln -si $(CURDIR) $(GOPATH)/src/github.com/sai-lab/server-status
-	ln -s $(CURDIR)/vendor $(CURDIR)/vendor/src
+	ln -sf $(CURDIR) $(GOPATH)/src/github.com/sai-lab/server-status
+	ln -sf $(CURDIR)/vendor $(CURDIR)/vendor/src
 
 fmt:
 	gom exec goimports -w *.go lib/*/*.go
