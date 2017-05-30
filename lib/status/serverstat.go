@@ -2,8 +2,6 @@ package status
 
 import (
 	"encoding/json"
-
-	"github.com/shirou/gopsutil/cpu"
 )
 
 type ServerStat struct {
@@ -18,7 +16,7 @@ type ServerStat struct {
 	// DiskIO
 	DiskIO []DiskStat `json:"diskIO"`
 	// Cpu
-	Cpu []cpu.TimesStat `json:"cpu"`
+	CpuUsedPercent []float64 `json:"cpuUsedPercent"`
 	// Apache
 	ApacheStat float64 `json:"apacheStat"`
 	// Time

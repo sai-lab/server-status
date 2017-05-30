@@ -2,6 +2,8 @@ package status
 
 import (
 	"fmt"
+	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/shirou/gopsutil/cpu"
@@ -116,10 +118,10 @@ func (s *ServerStat) GetTime() {
 }
 
 func (s *ServerStat) GetCpuStat() error {
-	c, err := cpu.Times(true)
+	c, err := cpu.Percent(0.0, false)
 	if err != nil {
 		return err
 	}
-	s.Cpu = c
+	s.CpuUsedPercent = c
 	return nil
 }
