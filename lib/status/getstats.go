@@ -3,6 +3,7 @@ package status
 import (
 	"fmt"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -31,6 +32,10 @@ func GetServerStat() (ServerStat, []error) {
 	errApache := d.GetApacheStat()
 	if errApache != nil {
 		err = append(err, errApache)
+	}
+	errApacheLog := d.GetApacheLog()
+	if errApacheLog != nil {
+		err = append(err, errApacheLog)
 	}
 	errCpu := d.GetCpuStat()
 	if errCpu != nil {
@@ -109,6 +114,18 @@ func (s *ServerStat) GetApacheStat() error {
 
 	r := float64((all - idles)) / float64(all)
 	s.ApacheStat = r
+	return nil
+}
+
+func (s *ServerStat) GetApacheLog() error {
+	out, err := exec.Command("wc", "-l", "/var/log/apache2/apache.log").Output()
+	if err != nil {
+		return err
+	}
+	s.ApacheLog, err = strconv.Atoi(string(out))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

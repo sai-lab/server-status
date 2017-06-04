@@ -19,6 +19,7 @@ type ServerStat struct {
 	CpuUsedPercent []float64 `json:"cpuUsedPercent"`
 	// Apache
 	ApacheStat float64 `json:"apacheStat"`
+	ApacheLog  int     `json:"apacheLog"`
 	// Time
 	Time string `json:"time"`
 	// Error
