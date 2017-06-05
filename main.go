@@ -10,6 +10,8 @@ import (
 
 func main() {
 
+	cmd := functions.MakeDstatLog()
+
 	http.HandleFunc("/", functions.Handler)
 	http.ListenAndServe(":8080", nil)
 
@@ -17,6 +19,7 @@ func main() {
 	signal.Notify(channel, os.Interrupt)
 
 	for range channel {
+		cmd.Process.Kill()
 		os.Exit(0)
 	}
 }

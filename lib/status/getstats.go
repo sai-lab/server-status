@@ -1,12 +1,12 @@
 package status
 
 import (
-	"fmt"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
 
+	pipeline "github.com/mattn/go-pipeline"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
@@ -37,6 +37,10 @@ func GetServerStat() (ServerStat, []error) {
 	if errApacheLog != nil {
 		err = append(err, errApacheLog)
 	}
+	errDstatLog := d.GetDstatLog()
+	if errDstatLog != nil {
+		err = append(err, errDstatLog)
+	}
 	errCpu := d.GetCpuStat()
 	if errCpu != nil {
 		err = append(err, errCpu)
@@ -46,6 +50,7 @@ func GetServerStat() (ServerStat, []error) {
 	if err != nil {
 		return d, err
 	}
+	d.ErrorInfo = err
 
 	return d, nil
 }
@@ -118,20 +123,32 @@ func (s *ServerStat) GetApacheStat() error {
 }
 
 func (s *ServerStat) GetApacheLog() error {
-	out, err := exec.Command("wc", "-l", "/var/log/apache2/apache.log").Output()
+	out, err := pipeline.Output(
+		[]string{"wc", "-l", "/var/log/apache2/access.log"},
+		[]string{"cut", "-d", " ", "-f", "1"},
+	)
 	if err != nil {
 		return err
 	}
-	s.ApacheLog, err = strconv.Atoi(string(out))
+	s.ApacheLog, err = strconv.Atoi(strings.TrimRight(string(out), "\n"))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
+func (s *ServerStat) GetDstatLog() error {
+	out, err := exec.Command("tail", "-1", "/home/ansible/dstatlog.csv").Output()
+	if err != nil {
+		return err
+	}
+	s.DstatLog = string(out)
+	return nil
+}
+
 func (s *ServerStat) GetTime() {
 	now := time.Now()
-	s.Time = fmt.Sprint(now)
+	s.Time = now.String()
 }
 
 func (s *ServerStat) GetCpuStat() error {
