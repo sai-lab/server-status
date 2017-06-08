@@ -37,10 +37,10 @@ func GetServerStat() (ServerStat, []error) {
 	if errApacheLog != nil {
 		err = append(err, errApacheLog)
 	}
-	errDstatLog := d.GetDstatLog()
-	if errDstatLog != nil {
-		err = append(err, errDstatLog)
-	}
+	// errDstatLog := d.GetDstatLog()
+	// if errDstatLog != nil {
+	// 	err = append(err, errDstatLog)
+	// }
 	errCpu := d.GetCpuStat()
 	if errCpu != nil {
 		err = append(err, errCpu)
@@ -95,7 +95,7 @@ func (s *ServerStat) GetDiskIOStat() error {
 }
 
 func (s *ServerStat) GetApacheStat() error {
-	var dataLine int
+	var dataLine, beforeData int
 	out, err := exec.Command("apachectl", "status").Output()
 	if err != nil {
 		return err
@@ -105,15 +105,20 @@ func (s *ServerStat) GetApacheStat() error {
 	lines := strings.Split(strings.TrimRight(d, "\n"), "\n")
 
 	for k, v := range lines {
+		if strings.Index(v, "requests currently being processed") != -1 {
+			beforeData = k
+		}
 		if v == "Scoreboard Key:" {
 			dataLine = k
 			break
 		}
 	}
 
-	board := lines[dataLine-4]
-	board = board + lines[dataLine-3]
-	board = board + lines[dataLine-2]
+	board := ""
+	for i := beforeData + 2; i <= dataLine-2; i++ {
+		board = board + lines[i]
+	}
+
 	all := len(strings.Split(board, ""))
 	idles := strings.Count(board, "_") + strings.Count(board, ".")
 
