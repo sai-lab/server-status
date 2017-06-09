@@ -13,12 +13,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 
 	log.SetFlags(0)
-	d, err := status.GetServerStat()
-
-	if err != nil {
-		log.Println("get status error:", err)
-		d.ErrorInfo = err
-	}
+	d := status.GetServerStat()
 
 	j, _ := json.Marshal(d)
 	buf.Write(j)

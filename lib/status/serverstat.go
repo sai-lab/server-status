@@ -2,6 +2,8 @@ package status
 
 import (
 	"encoding/json"
+
+	"github.com/shirou/gopsutil/mem"
 )
 
 type ServerStat struct {
@@ -10,16 +12,14 @@ type ServerStat struct {
 	HostID               string `json:"hostid"`
 	VirtualizationSystem string `json:"virtualizationSystem"`
 	// Memory
-	Total       uint64  `json:"total"`
-	Available   uint64  `json:"available"`
-	UsedPercent float64 `json:"usedPercent"`
+	MemStat mem.VirtualMemoryStat `json:"memStat"`
 	// DiskIO
 	DiskIO []DiskStat `json:"diskIO"`
 	// Cpu
 	CpuUsedPercent []float64 `json:"cpuUsedPercent"`
 	// Apache
 	ApacheStat float64 `json:"apacheStat"`
-	ApacheLog  int     `json:"apacheLog"`
+	ApacheLog  int64   `json:"apacheLog"`
 	// Dstat
 	DstatLog string `json:"dstatLog"`
 	// Time

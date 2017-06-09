@@ -4,12 +4,13 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 
 	"github.com/sai-lab/server-status/lib/functions"
 )
 
 func main() {
-
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	// cmd := functions.MakeDstatLog()
 
 	http.HandleFunc("/", functions.Handler)

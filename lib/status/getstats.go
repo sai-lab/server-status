@@ -1,87 +1,76 @@
 package status
 
 import (
+	"log"
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
-	pipeline "github.com/mattn/go-pipeline"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
 )
 
-func GetServerStat() (ServerStat, []error) {
-	var d ServerStat
-	var err []error
+func GetServerStat() ServerStat {
+	var wg sync.WaitGroup
+	var ss ServerStat
 
-	errHost := d.GetHostStat()
-	if errHost != nil {
-		err = append(err, errHost)
-	}
-	errMemory := d.GetMemoryStat()
-	if errMemory != nil {
-		err = append(err, errMemory)
-	}
-	errDisk := d.GetDiskIOStat()
-	if errDisk != nil {
-		err = append(err, errDisk)
-	}
-	errApache := d.GetApacheStat()
-	if errApache != nil {
-		err = append(err, errApache)
-	}
-	errApacheLog := d.GetApacheLog()
-	if errApacheLog != nil {
-		err = append(err, errApacheLog)
-	}
+	wg.Add(5)
+	go func(d *ServerStat) {
+		defer wg.Done()
+		d.GetHostStat()
+	}(&ss)
+	go func(d *ServerStat) {
+		defer wg.Done()
+		d.GetMemoryStat()
+	}(&ss)
+	go func(d *ServerStat) {
+		defer wg.Done()
+		d.GetDiskIOStat()
+	}(&ss)
+	go func(d *ServerStat) {
+		defer wg.Done()
+		d.GetApacheStat()
+	}(&ss)
+	go func(d *ServerStat) {
+		defer wg.Done()
+		d.GetCpuStat()
+	}(&ss)
+
 	// errDstatLog := d.GetDstatLog()
-	// if errDstatLog != nil {
-	// 	err = append(err, errDstatLog)
-	// }
-	errCpu := d.GetCpuStat()
-	if errCpu != nil {
-		err = append(err, errCpu)
-	}
-	d.GetTime()
 
-	if err != nil {
-		return d, err
-	}
-	d.ErrorInfo = err
+	wg.Wait()
+	ss.GetTime()
 
-	return d, nil
+	return ss
 }
 
-func (s *ServerStat) GetHostStat() error {
+func (s *ServerStat) GetHostStat() {
 	h, err := host.Info()
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 	s.HostName = h.Hostname
 	s.HostID = h.HostID
 	s.VirtualizationSystem = h.VirtualizationSystem
-	return nil
 }
 
-func (s *ServerStat) GetMemoryStat() error {
+func (s *ServerStat) GetMemoryStat() {
 	m, err := mem.VirtualMemory()
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
-	s.Total = m.Total
-	s.Available = m.Available
-	s.UsedPercent = m.UsedPercent
-	return nil
+	s.MemStat = *m
 }
 
-func (s *ServerStat) GetDiskIOStat() error {
+func (s *ServerStat) GetDiskIOStat() {
 	var ds []DiskStat
 	i, err := disk.IOCounters()
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 	for k, v := range i {
 		var d DiskStat
@@ -91,64 +80,47 @@ func (s *ServerStat) GetDiskIOStat() error {
 		ds = append(ds, d)
 	}
 	s.DiskIO = ds
-	return nil
 }
 
-func (s *ServerStat) GetApacheStat() error {
-	var dataLine, beforeData int
-	out, err := exec.Command("apachectl", "status").Output()
+func (s *ServerStat) GetApacheStat() {
+	var operatingData, accessData string
+	out, err := exec.Command("curl", "localhost/server-status?auto").Output()
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 
 	d := string(out)
 	lines := strings.Split(strings.TrimRight(d, "\n"), "\n")
 
-	for k, v := range lines {
-		if strings.Index(v, "requests currently being processed") != -1 {
-			beforeData = k
+	for _, v := range lines {
+		if strings.Index(v, "Scoreboard") != -1 {
+			operatingData = v
 		}
-		if v == "Scoreboard Key:" {
-			dataLine = k
-			break
+		if strings.Index(v, "Total Accesses") != -1 {
+			accessData = v
 		}
 	}
 
-	board := ""
-	for i := beforeData + 2; i <= dataLine-2; i++ {
-		board = board + lines[i]
-	}
+	board := operatingData[12:]
+	totalAccess := accessData[16:]
 
 	all := len(strings.Split(board, ""))
 	idles := strings.Count(board, "_") + strings.Count(board, ".")
 
 	r := float64((all - idles)) / float64(all)
 	s.ApacheStat = r
-	return nil
+	s.ApacheLog, err = strconv.ParseInt(totalAccess, 10, 64)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
-func (s *ServerStat) GetApacheLog() error {
-	out, err := pipeline.Output(
-		[]string{"wc", "-l", "/var/log/apache2/access.log"},
-		[]string{"cut", "-d", " ", "-f", "1"},
-	)
-	if err != nil {
-		return err
-	}
-	s.ApacheLog, err = strconv.Atoi(strings.TrimRight(string(out), "\n"))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *ServerStat) GetDstatLog() error {
+func (s *ServerStat) GetDstatLog() {
 	out, err := exec.Command("tail", "-1", "/home/ansible/dstatlog.csv").Output()
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 	s.DstatLog = string(out)
-	return nil
 }
 
 func (s *ServerStat) GetTime() {
@@ -156,11 +128,10 @@ func (s *ServerStat) GetTime() {
 	s.Time = now.String()
 }
 
-func (s *ServerStat) GetCpuStat() error {
+func (s *ServerStat) GetCpuStat() {
 	c, err := cpu.Percent(0.0, false)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 	s.CpuUsedPercent = c
-	return nil
 }
