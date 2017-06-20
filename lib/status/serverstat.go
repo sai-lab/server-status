@@ -20,6 +20,7 @@ type ServerStat struct {
 	// Apache
 	ApacheStat float64 `json:"apacheStat"`
 	ApacheLog  int64   `json:"apacheLog"`
+	ReqPerSec  float64 `json:"reqPerSec"`
 	// Dstat
 	DstatLog string `json:"dstatLog"`
 	// Time

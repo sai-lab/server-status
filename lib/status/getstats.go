@@ -83,7 +83,7 @@ func (s *ServerStat) GetDiskIOStat() {
 }
 
 func (s *ServerStat) GetApacheStat() {
-	var operatingData, accessData string
+	var operatingData, accessData, reqData string
 	out, err := exec.Command("curl", "localhost/server-status?auto").Output()
 	if err != nil {
 		log.Fatal(err)
@@ -96,13 +96,17 @@ func (s *ServerStat) GetApacheStat() {
 		if strings.Index(v, "Scoreboard") != -1 {
 			operatingData = v
 		}
-		if strings.Index(v, "Total Accesses") != -1 {
+		if strings.Index(v, "Total Access") != -1 {
 			accessData = v
+		}
+		if strings.Index(v, "ReqPerSec") != -1 {
+			reqData = v
 		}
 	}
 
 	board := operatingData[12:]
 	totalAccess := accessData[16:]
+	reqPerSec := reqData[11:]
 
 	all := len(strings.Split(board, ""))
 	idles := strings.Count(board, "_") + strings.Count(board, ".")
@@ -110,6 +114,10 @@ func (s *ServerStat) GetApacheStat() {
 	r := float64((all - idles)) / float64(all)
 	s.ApacheStat = r
 	s.ApacheLog, err = strconv.ParseInt(totalAccess, 10, 64)
+	if err != nil {
+		log.Fatal(err)
+	}
+	s.ReqPerSec, err = strconv.ParseFloat(reqPerSec, 64)
 	if err != nil {
 		log.Fatal(err)
 	}
