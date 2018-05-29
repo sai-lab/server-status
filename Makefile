@@ -1,12 +1,8 @@
 GO_BUILDOPT := -ldflags '-s -w'
 
 gom:
-	@if [`which go` = "go not found"]; then \
-		echo "Please install Golang"; \
-	else \
-		go get github.com/mattn/gom; \
-		gom install; \
-	fi
+	go get github.com/mattn/gom
+	gom install
 
 link:
 	mkdir -p $(GOPATH)/src/github.com/sai-lab
