@@ -12,19 +12,24 @@ type ServerStat struct {
 	HostID               string `json:"hostid"`
 	VirtualizationSystem string `json:"virtualizationSystem"`
 	// Memory
-	MemStat mem.VirtualMemoryStat `json:"memStat"`
+	MemStat               mem.VirtualMemoryStat `json:"memStat"`
+	MemoryAcquisitionTime string                `json:"memoryAcquisitionTime"`
 	// DiskIO
-	DiskIO []DiskStat `json:"diskIO"`
+	DiskIO              []DiskStat `json:"diskIO"`
+	diskAcquisitionTime string     `json:"diskAcquisitionTime"`
 	// Cpu
-	CpuUsedPercent []float64 `json:"cpuUsedPercent"`
+	CpuUsedPercent     []float64 `json:"cpuUsedPercent"`
+	CpuAcquisitionTime string    `json:"cpuAcquisitionTime"`
 	// Apache
-	ApacheStat float64 `json:"apacheStat"`
-	ApacheLog  int64   `json:"apacheLog"`
-	ReqPerSec  float64 `json:"reqPerSec"`
+	ApacheStat            float64 `json:"apacheStat"`
+	ApacheLog             int64   `json:"apacheLog"`
+	ReqPerSec             float64 `json:"reqPerSec"`
+	ApacheAcquisitionTime string  `json:"apacheAcquisitionTime"`
 	// Dstat
-	DstatLog string `json:"dstatLog"`
+	DstatLog             string `json:"dstatLog"`
+	DstatAcquisitionTime string `json:"dstatAcquisitionTime"`
 	// Time
-	Time string `json:"time"`
+	LastTime string `json:"time"`
 	// Error
 	ErrorInfo []error `json:"errorInfo"`
 }

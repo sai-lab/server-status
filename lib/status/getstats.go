@@ -43,7 +43,7 @@ func GetServerStat() ServerStat {
 	// errDstatLog := d.GetDstatLog()
 
 	wg.Wait()
-	ss.GetTime()
+	ss.LastTime = ss.GetTime()
 
 	return ss
 }
@@ -64,6 +64,7 @@ func (s *ServerStat) GetMemoryStat() {
 		log.Fatal(err)
 	}
 	s.MemStat = *m
+	s.MemoryAcquisitionTime = s.GetTime()
 }
 
 func (s *ServerStat) GetDiskIOStat() {
@@ -80,6 +81,7 @@ func (s *ServerStat) GetDiskIOStat() {
 		ds = append(ds, d)
 	}
 	s.DiskIO = ds
+	s.diskAcquisitionTime = s.GetTime()
 }
 
 func (s *ServerStat) GetApacheStat() {
@@ -88,6 +90,8 @@ func (s *ServerStat) GetApacheStat() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	s.ApacheAcquisitionTime = s.GetTime()
 
 	d := string(out)
 	lines := strings.Split(strings.TrimRight(d, "\n"), "\n")
@@ -125,15 +129,11 @@ func (s *ServerStat) GetApacheStat() {
 
 func (s *ServerStat) GetDstatLog() {
 	out, err := exec.Command("tail", "-1", "/home/ansible/dstatlog.csv").Output()
+	s.DstatAcquisitionTime = s.GetTime()
 	if err != nil {
 		log.Fatal(err)
 	}
 	s.DstatLog = string(out)
-}
-
-func (s *ServerStat) GetTime() {
-	now := time.Now()
-	s.Time = now.String()
 }
 
 func (s *ServerStat) GetCpuStat() {
@@ -141,5 +141,15 @@ func (s *ServerStat) GetCpuStat() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	s.CpuAcquisitionTime = s.GetTime()
+
 	s.CpuUsedPercent = c
+}
+
+func GetThroughput() {
+
+}
+
+func (s *ServerStat) GetTime() string {
+	return time.Now().String()
 }
