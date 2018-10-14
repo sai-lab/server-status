@@ -37,7 +37,7 @@ func GetServerStat() ServerStat {
 	}(&ss)
 	go func(d *ServerStat) {
 		defer wg.Done()
-		d.GetCpuStat()
+		d.GetCPUStat()
 	}(&ss)
 
 	// errDstatLog := d.GetDstatLog()
@@ -136,7 +136,7 @@ func (s *ServerStat) GetDstatLog() {
 	s.DstatLog = string(out)
 }
 
-func (s *ServerStat) GetCpuStat() {
+func (s *ServerStat) GetCPUStat() {
 	c, err := cpu.Percent(0.0, false)
 	if err != nil {
 		log.Fatal(err)
@@ -151,5 +151,5 @@ func GetThroughput() {
 }
 
 func (s *ServerStat) GetTime() string {
-	return time.Now().String()
+	return time.Now().Format(time.RFC3339Nano)
 }
